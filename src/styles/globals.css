@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Button styles */
+.btn-selection {
+  @apply bg-white border-2 border-blue-700 text-blue-800 py-3 px-4 rounded-lg text-left font-medium
+  shadow-sm hover:bg-blue-50 hover:border-blue-800 transition-all duration-200
+  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+.btn-filter {
+  @apply bg-white border-2 border-gray-300 text-gray-700 py-2 px-4 rounded-lg text-left
+  hover:border-blue-500 hover:text-blue-700 transition-all duration-200
+  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+.btn-filter-active {
+  @apply bg-blue-50 border-blue-700 text-blue-800;
+}
+
+.btn-continue {
+  @apply bg-gradient-to-r from-blue-900 to-teal-600 text-white py-3 px-6 rounded-lg font-medium
+  shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200
+  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500;
+}

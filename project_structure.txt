@@ -1,0 +1,24 @@
+src
+├── app.tsx
+├── components
+│   └── screens
+│       ├── Home
+│       │   ├── Home.tsx
+│       │   └── index.ts
+│       └── Onboarding
+│           ├── index.ts
+│           └── Onboarding.tsx
+├── data
+│   └── services
+│       ├── benefitsService.js
+│       └── index.ts
+├── index.js
+├── index.tsx
+├── styles
+│   └── globals.css
+└── utils
+    └── pdf
+        ├── generatePdf.ts
+        └── index.ts
+
+10 directories, 12 files

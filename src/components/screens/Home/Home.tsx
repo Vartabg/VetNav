@@ -1,19 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const HomeScreen = () => {
-  // Proper function for navigation instead of inline console.log
+const Home = () => {
+  const navigate = useNavigate();
+  
   const navigateToBenefitsFinder = () => {
-    // This would be replaced with actual navigation in a full implementation
-    console.log('Navigating to benefits finder');
+    navigate('/onboarding');
   };
 
   return (
     <div className="flex flex-col items-center justify-between min-h-screen bg-gray-50 px-4 sm:px-6 py-8 font-inter">
       <div className="flex-grow flex flex-col items-center justify-center w-full max-w-md mx-auto">
         <header className="text-center mb-4">
-          <h1 
-            className="text-3xl sm:text-4xl font-light tracking-wide text-blue-800 mb-3 font-jakarta"
-          >
+          <h1 className="text-3xl sm:text-4xl font-light tracking-wide text-blue-800 mb-3 font-jakarta">
             Veterans Benefits Finder
           </h1>
           
@@ -40,4 +39,4 @@ const HomeScreen = () => {
   );
 };
 
-export default HomeScreen;
+export default Home;
