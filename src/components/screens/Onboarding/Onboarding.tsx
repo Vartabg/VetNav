@@ -41,7 +41,7 @@ const Onboarding = () => {
       setSelections({ ...selections, filters: newFilters });
     } else if (field === 'resultType') {
       // This is the final step - handle completion
-      handleOnboardingComplete();
+      handleOnboardingComplete(value);
     }
   };
 
@@ -74,12 +74,22 @@ const Onboarding = () => {
   };
 
   // Handle completion of onboarding
-  const handleOnboardingComplete = () => {
-    console.log('Onboarding complete with selections:', selections);
-    // In a real implementation, this would navigate to results or generate PDF
-    alert('Onboarding complete! Selected options: ' + JSON.stringify(selections, null, 2));
-    // For now, just go back to home
-    navigate('/');
+  const handleOnboardingComplete = (resultType) => {
+    // Update the result type in selections
+    const finalSelections = { ...selections, resultType };
+    
+    // Navigate to results page with selections as state
+    if (resultType === 'browse') {
+      navigate('/results', { state: { selections: finalSelections } });
+    } else if (resultType === 'pdf') {
+      // For PDF, we'll still navigate to results but with a flag to auto-download
+      navigate('/results', { 
+        state: { 
+          selections: finalSelections,
+          autoDownloadPdf: true
+        } 
+      });
+    }
   };
 
   // Render step content based on current step

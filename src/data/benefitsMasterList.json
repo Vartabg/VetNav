@@ -1,0 +1,140 @@
+const fs = require('fs');
+
+// Read the JSON file
+const benefitsData = JSON.parse(fs.readFileSync('benefitsMasterList-source.json', 'utf8'));
+
+// Controlled vocabulary for tags
+const validTagVocabulary = [
+  "active_duty", "wartime_service", "disability_rating", "service_connected",
+  "spouse_eligible", "child_eligible", "survivor_benefit", "income_based",
+  "asset_limit", "residency_required", "healthcare", "housing", "education",
+  "employment", "financial", "tax_property", "entrepreneurship", "burial",
+  "transportation", "veterans_home", "license_fee", "underutilized",
+  "nursing_home", "long_term_care", "career_training", "tuition_assistance"
+];
+
+// Tag mapping to standardize existing tags
+const tagMap = {
+  // Direct matches
+  "active_duty": "active_duty",
+  "housing": "housing",
+  "education": "education",
+  "employment": "employment",
+  "financial": "financial",
+  "healthcare": "healthcare",
+  
+  // Approximations/Mappings
+  "tuition_assistance": "tuition_assistance",
+  "housing_allowance": "housing",
+  "book_stipend": "education",
+  "transferable": "child_eligible", 
+  "medical": "healthcare",
+  "preventive_care": "healthcare",
+  "prescriptions": "healthcare",
+  "mental_health": "healthcare",
+  "mortgage": "housing",
+  "home_buying": "housing", 
+  "no_down_payment": "housing",
+  "refinance": "housing",
+  "pension": "financial",
+  "elder_care": "long_term_care",
+  "caregiving": "healthcare",
+  "long_term_care": "long_term_care",
+  "vocational_training": "career_training",
+  "disability": "disability_rating",
+  "career_counseling": "career_training",
+  "home_adaptation": "housing",
+  "accessibility": "housing",
+  "grants": "financial",
+  "state_benefit": "financial",
+  "tuition_waiver": "tuition_assistance",
+  "dependents": "child_eligible",
+  "low_interest": "financial",
+  "property_tax": "tax_property",
+  "tax_exemption": "tax_property",
+  "nursing_home": "nursing_home"
+};
+
+// Function to convert eligibility text to structured array
+function formatEligibility(text) {
+  if (!text) return [];
+  
+  // Split by sentence boundaries, commas, semicolons
+  const segments = text.split(/[.,;]\s+|\n|(?<=\w)\s+(?=[A-Z])/)
+    .map(s => s.trim())
+    .filter(s => s.length > 3); // Filter out very short segments
+    
+  // Process each segment into standardized format
+  return segments.map(segment => {
+    // Convert to lowercase
+    let formatted = segment.toLowerCase();
+    
+    // Remove leading bullets or dashes
+    formatted = formatted.replace(/^[•\-*]\s*/, '');
+    
+    // Replace common phrases for consistency
+    formatted = formatted
+      .replace(/veterans? with/g, 'has')
+      .replace(/must have/g, 'has')
+      .replace(/required to/g, 'must')
+      .replace(/veterans? who/g, '')
+      .replace(/those who/g, '')
+      .replace(/individuals? who/g, '')
+      .trim();
+      
+    // Replace spaces with underscores
+    formatted = formatted.replace(/\s+/g, '_');
+    
+    // Cleanup multiple underscores and any at beginning/end
+    formatted = formatted
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
+      
+    return formatted;
+  });
+}
+
+// Function to standardize tags
+function standardizeTags(tags) {
+  if (!tags || !Array.isArray(tags)) return [];
+  
+  // Map tags to standard vocabulary and filter out nulls
+  const mappedTags = tags
+    .map(tag => tagMap[tag] || null)
+    .filter(tag => tag !== null);
+    
+  // Remove duplicates
+  return [...new Set(mappedTags)];
+}
+
+// Process each benefit
+const processedBenefits = benefitsData.map(benefit => {
+  // Create new object with renamed fields and processed values
+  const processedBenefit = {
+    id: benefit.benefitName.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/^-+|-+$/g, ''),
+    title: benefit.benefitName,
+    level: benefit.level,
+    state: benefit.state,
+    category: benefit.category,
+    description: benefit.description,
+    eligibility: formatEligibility(benefit.eligibility),
+    application: benefit.application,
+    source: benefit.source || "",
+    tags: standardizeTags(benefit.tags),
+    underutilized: benefit.underutilized || false
+  };
+  
+  // Add underutilizedReason only if underutilized is true
+  if (benefit.underutilized && benefit.underutilizedReason) {
+    processedBenefit.underutilizedReason = benefit.underutilizedReason;
+  }
+  
+  // Add missing priority field
+  processedBenefit.priority = benefit.priority || "medium";
+  
+  return processedBenefit;
+});
+
+// Save the processed benefits to a new file
+fs.writeFileSync('benefitsMasterList.json', JSON.stringify(processedBenefits, null, 2), 'utf8');
+console.log('Successfully created benefitsMasterList.json');

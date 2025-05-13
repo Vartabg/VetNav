@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './components/screens/Home/Home';
 import Onboarding from './components/screens/Onboarding/Onboarding';
+import Results from './components/screens/Results/Results';
 import './styles/globals.css';
 
 // App component with routes
@@ -12,6 +13,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/results" element={<Results />} />
       </Routes>
     </BrowserRouter>
   );
