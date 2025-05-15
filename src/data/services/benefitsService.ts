@@ -1,4 +1,5 @@
 // src/data/services/benefitsService.ts
+console.log('--- LOADING LATEST benefitsService.ts (NO DEFAULT EXPORT) ---'); // For debugging
 
 import benefitsData from '../benefitsMasterList.json';
 import { VeteranBenefit, BenefitFilters } from '../types';
@@ -6,8 +7,33 @@ import { VeteranBenefit, BenefitFilters } from '../types';
 const typedBenefits: VeteranBenefit[] = benefitsData as VeteranBenefit[];
 
 export const filterBenefits = (filters: BenefitFilters = {}): VeteranBenefit[] => {
-  // ... (implementation as before)
   let filteredBenefits = [...typedBenefits];
+  if (filters.category && filters.category !== 'all') {
+    filteredBenefits = filteredBenefits.filter(
+      benefit => benefit.category === filters.category
+    );
+  }
+  if (filters.state && filters.state !== 'all') {
+    filteredBenefits = filteredBenefits.filter(
+      benefit => (filters.state === 'federal' && benefit.level === 'federal') || 
+                benefit.state === filters.state
+    );
+  }
+  if (filters.level && filters.level !== 'all') {
+    filteredBenefits = filteredBenefits.filter(
+      benefit => benefit.level === filters.level
+    );
+  }
+  if (typeof filters.underutilized === 'boolean') {
+    filteredBenefits = filteredBenefits.filter(
+      benefit => benefit.underutilized === filters.underutilized
+    );
+  }
+  if (filters.tags && filters.tags.length > 0) {
+    filteredBenefits = filteredBenefits.filter(benefit => 
+      Array.isArray(benefit.tags) && filters.tags!.some(tag => benefit.tags.includes(tag))
+    );
+  }
   if (filters.keyword) {
     const keyword = filters.keyword.toLowerCase();
     filteredBenefits = filteredBenefits.filter(benefit => 
@@ -15,7 +41,6 @@ export const filterBenefits = (filters: BenefitFilters = {}): VeteranBenefit[] =
       benefit.description.toLowerCase().includes(keyword)
     );
   }
-  // ... other filters ...
   return filteredBenefits;
 };
 
@@ -63,5 +88,13 @@ export const getUnderutilizedBenefits = (): VeteranBenefit[] => {
   return typedBenefits.filter(benefit => benefit.underutilized === true);
 };
 
-// NO 'benefitsServiceApi' OBJECT DEFINITION HERE
-// NO 'export default' LINE HERE EITHER
+// Default export block is INTENTIONALLY REMOVED/COMMENTED OUT for debugging Step 4
+/*
+const benefitsServiceApi = {
+  filterBenefits,
+  getBenefitById,
+  getAllBenefits,
+  // ... etc.
+};
+export default benefitsServiceApi;
+*/
