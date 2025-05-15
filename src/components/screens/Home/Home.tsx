@@ -163,7 +163,7 @@ export const Home = () => {
               .slice(0, 3)
               .map((benefit, index) => (
                 <div key={index} className="bg-blue-50 p-6 rounded-lg shadow-sm">
-                  <h3 className="text-lg font-semibold mb-2">{benefit.benefitName}</h3>
+                  <h3 className="text-lg font-semibold mb-2">{benefit.title}</h3>
                   <p className="text-sm text-gray-600 mb-4">
                     {benefit.description.substring(0, 120)}...
                   </p>
@@ -174,7 +174,7 @@ export const Home = () => {
                     <Link
                       to="/results"
                       className="text-blue-700 hover:text-blue-900 text-sm font-medium"
-                      onClick={() => setFilters({ keyword: benefit.benefitName })}
+                      onClick={() => setFilters({ keyword: benefit.title })}
                     >
                       Learn More →
                     </Link>

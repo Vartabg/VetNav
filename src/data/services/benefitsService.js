@@ -61,6 +61,11 @@ export const getBenefitByName = (name) => {
   );
 };
 
+// Get a single benefit by ID (added this function)
+export const getBenefitById = (id) => {
+  return benefits.find(benefit => benefit.benefitName === id);
+};
+
 // Get all benefits
 export const getAllBenefits = () => {
   return benefits;
@@ -106,8 +111,9 @@ export const getUnderutilizedBenefits = () => {
   return benefits.filter(benefit => benefit.underutilized === true);
 };
 
-export default {
+const benefitsServiceApi = {
   filterBenefits,
+  getBenefitById,
   getBenefitByName,
   getAllBenefits,
   getAllCategories,
@@ -117,3 +123,4 @@ export default {
   getStateBenefits,
   getUnderutilizedBenefits
 };
+export default benefitsServiceApi;

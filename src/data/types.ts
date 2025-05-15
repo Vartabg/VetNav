@@ -1,20 +1,26 @@
 // src/data/types.ts
 
 /**
- * Definition for a single veteran benefit
+ * Definition for a single veteran benefit,
+ * aligning with benefitsMasterList.json and validation script.
  */
 export interface VeteranBenefit {
-  benefitName: string;
-  level: 'federal' | 'state';
+  id: string;                            // MUST HAVE
+  title: string;                         // WAS 'benefitName', MUST BE 'title'
+  level: 'federal' | 'state' | 'local' | 'private';
   state: string | null;
-  category: 'healthcare' | 'housing' | 'education' | 'employment' | 'financial' | 'burial' | 'other';
+  category: string;                      // Or your specific enum if JSON matches
   description: string;
-  eligibility: string;
-  application: string;
+  eligibility: string[];                 // WAS 'string', MUST BE 'string[]' (an array)
+  application: {                         // WAS 'string', MUST BE an object
+    url: string;
+    instructions?: string;
+  };
   source: string;
   tags: string[];
-  underutilized: boolean;
-  underutilizedReason: string | null;
+  priority: 'critical' | 'high' | 'medium' | 'low'; // MUST HAVE
+  underutilized?: boolean;               // Optional is fine
+  underutilizedReason?: string | null;   // Optional is fine
 }
 
 /**
@@ -23,7 +29,7 @@ export interface VeteranBenefit {
 export interface BenefitFilters {
   category?: string;
   state?: string;
-  level?: 'federal' | 'state' | 'all';
+  level?: 'federal' | 'state' | 'local' | 'private' | 'all'; // Adjusted level
   underutilized?: boolean;
   tags?: string[];
   keyword?: string;
@@ -42,6 +48,6 @@ export interface VeteranProfile {
   honorableDischarge?: boolean;
   eligibleForMedicaid?: boolean;
   age?: number;
-  branch?: 'army' | 'navy' | 'airforce' | 'marines' | 'coastguard' | 'spacepforce' | 'national_guard' | 'reserves';
+  branch?: 'army' | 'navy' | 'airforce' | 'marines' | 'coastguard' | 'spaceforce' | 'national_guard' | 'reserves'; // Corrected 'spacepforce'
   yearsOfService?: number;
 }

@@ -1,18 +1,9 @@
 // src/data/services/benefitsService.js
 
-import rawBenefits from '../benefitsMasterList.json';
-
-// Add priority field while keeping all original properties
-const benefits = rawBenefits.map(benefit => ({
-  ...benefit,
-  // Map categories to priorities if priority isn't already defined
-  priority: benefit.priority || 
-    (benefit.category === 'healthcare' ? 'critical' : 
-     benefit.category === 'housing' || benefit.category === 'education' ? 'high' : 'medium')
-}));
+import benefits from '../benefitsMasterList.json';
 
 // Filter benefits based on various criteria
-export const filterBenefits = (filters) => {
+export const filterBenefits = (filters = {}) => {
   let filteredBenefits = [...benefits];
 
   // Filter by category if specified
@@ -25,39 +16,54 @@ export const filterBenefits = (filters) => {
   // Filter by state if specified
   if (filters.state && filters.state !== 'all') {
     filteredBenefits = filteredBenefits.filter(
-      benefit => benefit.state === filters.state || benefit.state === null
+      benefit => (filters.state === 'federal' && benefit.level === 'federal') || 
+                benefit.state === filters.state
     );
   }
 
-  // Filter by underused status if specified
-  if (filters.underused !== undefined) {
+  // Filter by level (federal/state)
+  if (filters.level && filters.level !== 'all') {
     filteredBenefits = filteredBenefits.filter(
-      benefit => benefit.underused === filters.underused
+      benefit => benefit.level === filters.level
     );
   }
 
-  // Filter by priority if specified
-  if (filters.priority && filters.priority !== 'all') {
+  // Filter by underutilized status if specified
+  if (filters.underutilized !== undefined) {
     filteredBenefits = filteredBenefits.filter(
-      benefit => benefit.priority === filters.priority
+      benefit => benefit.underutilized === filters.underutilized
     );
   }
 
-  // Filter by eligibility criteria if specified
-  if (filters.eligibility && filters.eligibility.length > 0) {
+  // Filter by tags if specified
+  if (filters.tags && filters.tags.length > 0) {
     filteredBenefits = filteredBenefits.filter(benefit => 
-      filters.eligibility.every(criterion => 
-        benefit.eligibility.includes(criterion)
-      )
+      filters.tags.some(tag => benefit.tags.includes(tag))
+    );
+  }
+
+  // Search by keyword in name or description
+  if (filters.keyword) {
+    const keyword = filters.keyword.toLowerCase();
+    filteredBenefits = filteredBenefits.filter(benefit => 
+      benefit.benefitName.toLowerCase().includes(keyword) || 
+      benefit.description.toLowerCase().includes(keyword)
     );
   }
 
   return filteredBenefits;
 };
 
-// Get a single benefit by ID
+// Get a single benefit by name
+export const getBenefitByName = (name) => {
+  return benefits.find(benefit => 
+    benefit.benefitName.toLowerCase() === name.toLowerCase()
+  );
+};
+
+// Get a single benefit by ID (added this function)
 export const getBenefitById = (id) => {
-  return benefits.find(benefit => benefit.id === id);
+  return benefits.find(benefit => benefit.benefitName === id);
 };
 
 // Get all benefits
@@ -68,7 +74,7 @@ export const getAllBenefits = () => {
 // Get all available categories
 export const getAllCategories = () => {
   const categories = new Set(benefits.map(benefit => benefit.category));
-  return Array.from(categories);
+  return Array.from(categories).sort();
 };
 
 // Get all available states
@@ -78,26 +84,43 @@ export const getAllStates = () => {
       .filter(benefit => benefit.state !== null)
       .map(benefit => benefit.state)
   );
-  return Array.from(states);
+  return Array.from(states).sort();
 };
 
-// Get all eligibility criteria
-export const getAllEligibilityCriteria = () => {
-  const criteria = new Set();
+// Get all available tags
+export const getAllTags = () => {
+  const tagsSet = new Set();
   benefits.forEach(benefit => {
-    benefit.eligibility.forEach(criterion => criteria.add(criterion));
+    benefit.tags.forEach(tag => tagsSet.add(tag));
   });
-  return Array.from(criteria);
+  return Array.from(tagsSet).sort();
 };
 
-// Create a variable for the default export to fix the ESLint warning
-const benefitsService = {
+// Get federal benefits
+export const getFederalBenefits = () => {
+  return benefits.filter(benefit => benefit.level === 'federal');
+};
+
+// Get state benefits
+export const getStateBenefits = () => {
+  return benefits.filter(benefit => benefit.level === 'state');
+};
+
+// Get underutilized benefits
+export const getUnderutilizedBenefits = () => {
+  return benefits.filter(benefit => benefit.underutilized === true);
+};
+
+const benefitsServiceApi = {
   filterBenefits,
   getBenefitById,
+  getBenefitByName,
   getAllBenefits,
   getAllCategories,
   getAllStates,
-  getAllEligibilityCriteria
+  getAllTags,
+  getFederalBenefits,
+  getStateBenefits,
+  getUnderutilizedBenefits
 };
-
-export default benefitsService;
+export default benefitsServiceApi;

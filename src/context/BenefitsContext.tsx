@@ -1,6 +1,16 @@
+// src/context/BenefitsContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { VeteranBenefit, BenefitFilters, VeteranProfile } from '../data/types';
-import * as benefitsService from '../data/services/benefitsService';
+import { VeteranBenefit, BenefitFilters, VeteranProfile } from '../data/types'; 
+// === MODIFIED IMPORT HERE ===
+import { 
+    getAllBenefits, 
+    getAllCategories, 
+    getAllStates, 
+    getAllTags,
+    filterBenefits // This is used in the useEffect for filters
+    // Note: getBenefitById is NOT directly used by THIS context file, so it's not imported here.
+    // Other components that need getBenefitById (like BenefitDetail.tsx) will import it directly.
+} from '../data/services/benefitsService'; 
 
 // Define the context shape
 interface BenefitsContextType {
@@ -8,10 +18,11 @@ interface BenefitsContextType {
   filteredBenefits: VeteranBenefit[];
   categories: string[];
   states: string[];
-  tags: string[];
+  tags: string[]; // This is the list of ALL available tags
   filters: BenefitFilters;
   setFilters: (filters: BenefitFilters) => void;
   isLoading: boolean;
+  error?: string | null;
   veteranProfile: VeteranProfile | null;
   setVeteranProfile: (profile: VeteranProfile) => void;
   clearFilters: () => void;
@@ -28,6 +39,7 @@ const BenefitsContext = createContext<BenefitsContextType>({
   filters: {},
   setFilters: () => {},
   isLoading: true,
+  error: null,
   veteranProfile: null,
   setVeteranProfile: () => {},
   clearFilters: () => {},
@@ -45,48 +57,43 @@ export const BenefitsProvider: React.FC<BenefitsProviderProps> = ({ children }) 
   const [filteredBenefits, setFilteredBenefits] = useState<VeteranBenefit[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [states, setStates] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+  const [tagsList, setTagsList] = useState<string[]>([]); 
   const [filters, setFilters] = useState<BenefitFilters>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); 
   const [veteranProfile, setVeteranProfile] = useState<VeteranProfile | null>(null);
   const [recommendedBenefits, setRecommendedBenefits] = useState<VeteranBenefit[]>([]);
 
-  // Load initial data
   useEffect(() => {
-    const loadData = async () => {
+    const loadData = () => {
       try {
-        // Load benefits data
-        const benefits = benefitsService.getAllBenefits();
-        const categories = benefitsService.getAllCategories();
-        const states = benefitsService.getAllStates();
-        const tags = benefitsService.getAllTags();
+        // === USING DIRECT FUNCTION CALLS NOW ===
+        const benefits = getAllBenefits(); 
+        const loadedCategories = getAllCategories();
+        const loadedStates = getAllStates();
+        const loadedTags = getAllTags();
 
-        // Set the state
         setAllBenefits(benefits);
-        setFilteredBenefits(benefits);
-        setCategories(categories);
-        setStates(states);
-        setTags(tags);
+        setFilteredBenefits(benefits); 
+        setCategories(loadedCategories);
+        setStates(loadedStates);
+        setTagsList(loadedTags);
 
-        // Check for saved filters or profile in localStorage
         const savedFilters = localStorage.getItem('benefitFilters');
-        const savedProfile = localStorage.getItem('veteranProfile');
-
         if (savedFilters) {
           const parsedFilters = JSON.parse(savedFilters);
           setFilters(parsedFilters);
-          applyFilters(benefits, parsedFilters);
         }
 
+        const savedProfile = localStorage.getItem('veteranProfile');
         if (savedProfile) {
           const parsedProfile = JSON.parse(savedProfile);
           setVeteranProfile(parsedProfile);
-          generateRecommendations(benefits, parsedProfile);
         }
-
         setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading benefits data:', error);
+      } catch (e: any) {
+        console.error('Error loading benefits data:', e);
+        setError(e.message || 'Failed to load benefits data.');
         setIsLoading(false);
       }
     };
@@ -94,104 +101,86 @@ export const BenefitsProvider: React.FC<BenefitsProviderProps> = ({ children }) 
     loadData();
   }, []);
 
-  // Apply filters when they change
   useEffect(() => {
-    if (!isLoading) {
-      applyFilters(allBenefits, filters);
-      // Save filters to localStorage
+    if (!isLoading && allBenefits.length > 0) { 
+      // === USING DIRECT FUNCTION CALL NOW ===
+      const currentlyFiltered = filterBenefits(filters); 
+      setFilteredBenefits(currentlyFiltered);
       localStorage.setItem('benefitFilters', JSON.stringify(filters));
     }
-  }, [filters, isLoading, allBenefits]);
+  }, [filters, allBenefits, isLoading]); 
 
-  // Update profile and regenerate recommendations when profile changes
   useEffect(() => {
-    if (veteranProfile && !isLoading) {
+    if (veteranProfile && !isLoading && allBenefits.length > 0) { 
       localStorage.setItem('veteranProfile', JSON.stringify(veteranProfile));
       generateRecommendations(allBenefits, veteranProfile);
     }
-  }, [veteranProfile, isLoading, allBenefits]);
+  }, [veteranProfile, allBenefits, isLoading]);
 
-  // Apply filters to benefits
-  const applyFilters = (benefits: VeteranBenefit[], currentFilters: BenefitFilters) => {
-    const filtered = benefitsService.filterBenefits(currentFilters);
-    setFilteredBenefits(filtered);
-  };
+  const generateRecommendations = (currentBenefits: VeteranBenefit[], profile: VeteranProfile) => {
+    let recommended = [...currentBenefits];
 
-  // Generate recommendations based on veteran profile
-  const generateRecommendations = (benefits: VeteranBenefit[], profile: VeteranProfile) => {
-    // Start with all benefits
-    let recommended = [...benefits];
-
-    // Apply filters based on profile data
     if (profile.hasServiceConnectedDisability) {
-      // Filter benefits that mention disability
       recommended = recommended.filter(benefit => 
-        benefit.tags.some(tag => 
-          tag.includes('disability') || 
-          tag.includes('service_connected')
-        ) ||
+        (Array.isArray(benefit.tags) && benefit.tags.some(tag => 
+          tag.toLowerCase().includes('disability') || 
+          tag.toLowerCase().includes('service_connected')
+        )) ||
         benefit.description.toLowerCase().includes('disability') ||
-        benefit.eligibility.toLowerCase().includes('disability')
+        (Array.isArray(benefit.eligibility) && benefit.eligibility.some(e => e.toLowerCase().includes('disability')))
       );
     }
 
     if (profile.activeState) {
-      // Prioritize state benefits for their state and federal benefits
       recommended = recommended.filter(benefit => 
         benefit.level === 'federal' || benefit.state === profile.activeState
       );
     }
 
     if (profile.servedAfter911) {
-      // Prioritize post-9/11 benefits
-      recommended = recommended.filter(benefit =>
-        !benefit.eligibility.toLowerCase().includes('before 9/11') &&
-        (
-          benefit.eligibility.toLowerCase().includes('9/11') ||
-          benefit.eligibility.toLowerCase().includes('september') ||
-          benefit.eligibility.toLowerCase().includes('post-9/11') ||
-          !benefit.eligibility.toLowerCase().includes('period')
-        )
-      );
-    }
-
-    if (profile.isWarTimeVeteran) {
-      // Include benefits for wartime veterans
-      const warTimeBenefits = benefits.filter(benefit =>
-        benefit.tags.includes('wartime_service') ||
-        benefit.eligibility.toLowerCase().includes('wartime') ||
-        benefit.eligibility.toLowerCase().includes('combat')
-      );
-      
-      // Add wartime benefits if not already included
-      warTimeBenefits.forEach(benefit => {
-        if (!recommended.some(rec => rec.benefitName === benefit.benefitName)) {
-          recommended.push(benefit);
-        }
+      recommended = recommended.filter(benefit => {
+        const eligibilityText = Array.isArray(benefit.eligibility) ? benefit.eligibility.join(' ').toLowerCase() : '';
+        return !eligibilityText.includes('before 9/11') &&
+               (eligibilityText.includes('9/11') ||
+                eligibilityText.includes('september') ||
+                eligibilityText.includes('post-9/11') ||
+                !eligibilityText.includes('period'));
       });
     }
 
-    // Set recommended benefits
+    if (profile.isWarTimeVeteran) {
+      const warTimeBenefits = currentBenefits.filter(benefit =>
+        (Array.isArray(benefit.tags) && benefit.tags.some(tag => tag.toLowerCase().includes('wartime_service'))) ||
+        (Array.isArray(benefit.eligibility) && benefit.eligibility.some(e => 
+            e.toLowerCase().includes('wartime') || 
+            e.toLowerCase().includes('combat')
+        ))
+      );
+      
+      warTimeBenefits.forEach(wartimeBenefit => {
+        if (wartimeBenefit.title && !recommended.some(rec => rec.title === wartimeBenefit.title)) {
+          recommended.push(wartimeBenefit);
+        }
+      });
+    }
     setRecommendedBenefits(recommended);
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setFilters({});
-    setFilteredBenefits(allBenefits);
     localStorage.removeItem('benefitFilters');
   };
 
-  // Context value
   const contextValue: BenefitsContextType = {
     allBenefits,
     filteredBenefits,
     categories,
     states,
-    tags,
+    tags: tagsList, 
     filters,
     setFilters,
     isLoading,
+    error, 
     veteranProfile,
     setVeteranProfile,
     clearFilters,
@@ -205,7 +194,7 @@ export const BenefitsProvider: React.FC<BenefitsProviderProps> = ({ children }) 
   );
 };
 
-// Custom hook for using the benefits context
 export const useBenefits = () => useContext(BenefitsContext);
 
+// Keeping default export of the context itself is fine for this file's structure
 export default BenefitsContext;

@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useBenefits } from '../../../context/BenefitsContext';
 import { VeteranProfile } from '../../../data/types';
 
-export const Onboarding = () => {
+const Onboarding = () => {
   const navigate = useNavigate();
   const { setVeteranProfile, allBenefits } = useBenefits();
   
   // Get unique states from benefits
-  const states = [...new Set(
-    allBenefits
-      .filter(benefit => benefit.state !== null)
-      .map(benefit => benefit.state)
-  )].sort();
+  const states = Array.from(
+    new Set(
+      allBenefits
+        .filter(benefit => benefit.state !== null)
+        .map(benefit => benefit.state)
+    )
+  ).sort();
   
   // State for the profile form
   const [profile, setProfile] = useState<VeteranProfile>({

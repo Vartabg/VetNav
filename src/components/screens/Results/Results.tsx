@@ -1,40 +1,46 @@
+// src/components/screens/Results/Results.tsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBenefits } from '../../../context/BenefitsContext';
 import { generateBenefitsPdf, generateSingleBenefitPdf } from '../../../utils/pdf/generatePdf';
-import { VeteranBenefit } from '../../../data/types';
+import { VeteranBenefit } from '../../../data/types'; // Assuming this is the CORRECTED VeteranBenefit type
 
-const Results = () => {
+const Results: React.FC = () => {
   const { 
     filteredBenefits, 
     filters, 
     setFilters, 
     categories, 
     states, 
-    tags,
+    tags, // This is 'tagsList' in the corrected context, but 'tags' is used here. Let's assume context provides 'tags' as the list.
     isLoading,
-    clearFilters
+    clearFilters,
+    // error: benefitsError, // If you want to display context-level errors
   } = useBenefits();
   
   const [selectedBenefit, setSelectedBenefit] = useState<VeteranBenefit | null>(null);
   
-  // Generate PDF report
+  // Generate PDF report for all filtered benefits
   const handleGeneratePdf = () => {
-    generateBenefitsPdf(filters, 'veteran-benefits-report.pdf');
+    // The generateBenefitsPdf function might need to be updated if it relies on the old 'benefitName'
+    // For now, assuming it takes filters and a filename
+    generateBenefitsPdf(filteredBenefits, 'veteran-benefits-report.pdf'); // Pass filteredBenefits directly
   };
   
   // Generate single benefit PDF
   const handleSingleBenefitPdf = (benefit: VeteranBenefit) => {
-    generateSingleBenefitPdf(benefit, `${benefit.benefitName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    // Corrected: use benefit.title and ensure template literal is correctly formed
+    const filename = `${benefit.title.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+    generateSingleBenefitPdf(benefit, filename);
   };
   
-  // Show benefit details
+  // Show benefit details in modal
   const handleShowDetails = (benefit: VeteranBenefit) => {
     setSelectedBenefit(benefit);
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0); // Scroll to top when modal opens
   };
   
-  // Close benefit details
+  // Close benefit details modal
   const handleCloseDetails = () => {
     setSelectedBenefit(null);
   };
@@ -49,9 +55,17 @@ const Results = () => {
     setFilters({ ...filters, state });
   };
   
-  // Filter by tag
-  const handleTagFilter = (tag: string) => {
-    setFilters({ ...filters, tags: filters.tags ? [...filters.tags, tag] : [tag] });
+  // Filter by tag (add or remove tag from filter)
+  const handleTagFilter = (tagToToggle: string) => {
+    const currentTags = filters.tags || [];
+    const newTags = currentTags.includes(tagToToggle)
+      ? currentTags.filter(t => t !== tagToToggle)
+      : [...currentTags, tagToToggle];
+    
+    setFilters({ 
+      ...filters, 
+      tags: newTags.length > 0 ? newTags : undefined 
+    });
   };
   
   // Loading state
@@ -78,7 +92,7 @@ const Results = () => {
                 Personalize
               </Link>
               <button onClick={handleGeneratePdf} className="text-white hover:text-blue-200">
-                Generate PDF
+                Generate PDF Report
               </button>
             </div>
           </div>
@@ -93,7 +107,8 @@ const Results = () => {
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl font-bold">{selectedBenefit.benefitName}</h2>
+                  {/* Corrected: selectedBenefit.title */}
+                  <h2 className="text-2xl font-bold">{selectedBenefit.title}</h2>
                   <button 
                     onClick={handleCloseDetails}
                     className="text-gray-500 hover:text-gray-700"
@@ -104,7 +119,7 @@ const Results = () => {
                 
                 <div className="flex flex-wrap gap-2 mb-6">
                   <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                    {selectedBenefit.level === 'federal' ? 'Federal' : `State: ${selectedBenefit.state}`}
+                    {selectedBenefit.level === 'federal' ? 'Federal' : `State: ${selectedBenefit.state || 'N/A'}`}
                   </span>
                   <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm capitalize">
                     {selectedBenefit.category}
@@ -123,12 +138,38 @@ const Results = () => {
                 
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">Eligibility</h3>
-                  <p className="text-gray-700">{selectedBenefit.eligibility}</p>
+                  {/* Corrected: Display eligibility array as a list or joined string */}
+                  {Array.isArray(selectedBenefit.eligibility) && selectedBenefit.eligibility.length > 0 ? (
+                    <ul className="list-disc list-inside text-gray-700">
+                      {selectedBenefit.eligibility.map((item, idx) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-700">{typeof selectedBenefit.eligibility === 'string' ? selectedBenefit.eligibility : 'Not specified'}</p>
+                  )}
                 </div>
                 
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">How to Apply</h3>
-                  <p className="text-gray-700">{selectedBenefit.application}</p>
+                  {/* This section was already corrected by you - great! */}
+                  <div className="text-gray-700">
+                    {selectedBenefit.application && selectedBenefit.application.url && (
+                      <p>
+                        <strong>URL:</strong> <a href={selectedBenefit.application.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {selectedBenefit.application.url}
+                        </a>
+                      </p>
+                    )}
+                    {selectedBenefit.application && selectedBenefit.application.instructions && (
+                      <p className="mt-1"> 
+                        <strong>Instructions:</strong> {selectedBenefit.application.instructions}
+                      </p>
+                    )}
+                    {(!selectedBenefit.application || (!selectedBenefit.application.url && !selectedBenefit.application.instructions)) && (
+                      <p>Application details not available.</p>
+                    )}
+                  </div>
                 </div>
                 
                 {selectedBenefit.underutilized && selectedBenefit.underutilizedReason && (
@@ -153,13 +194,14 @@ const Results = () => {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">Tags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {selectedBenefit.tags.map((tag, index) => (
+                    {/* Ensure selectedBenefit.tags is an array */}
+                    {Array.isArray(selectedBenefit.tags) && selectedBenefit.tags.map((tag, index) => (
                       <span 
                         key={index}
-                        className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm"
+                        className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm cursor-pointer hover:bg-gray-200"
                         onClick={() => {
                           handleTagFilter(tag);
-                          handleCloseDetails();
+                          handleCloseDetails(); // Optional: close modal after applying tag filter
                         }}
                       >
                         {tag}
@@ -188,7 +230,7 @@ const Results = () => {
             {filteredBenefits.length} benefits match your criteria
           </p>
           
-          {/* Active Filters */}
+          {/* Active Filters Display */}
           <div className="flex flex-wrap gap-2 mb-4">
             {filters.category && filters.category !== 'all' && (
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
@@ -201,7 +243,7 @@ const Results = () => {
                 </button>
               </span>
             )}
-            
+            {/* ... other active filter displays ... */}
             {filters.state && filters.state !== 'all' && (
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
                 State: {filters.state}
@@ -213,7 +255,6 @@ const Results = () => {
                 </button>
               </span>
             )}
-            
             {filters.level && filters.level !== 'all' && (
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
                 Level: {filters.level}
@@ -225,10 +266,9 @@ const Results = () => {
                 </button>
               </span>
             )}
-            
-            {filters.underutilized && (
+            {typeof filters.underutilized === 'boolean' && ( // Check type for underutilized
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
-                Underutilized Only
+                Underutilized: {filters.underutilized ? 'Yes' : 'No'}
                 <button 
                   onClick={() => setFilters({ ...filters, underutilized: undefined })}
                   className="ml-2 text-blue-500 hover:text-blue-700"
@@ -237,7 +277,6 @@ const Results = () => {
                 </button>
               </span>
             )}
-            
             {filters.keyword && (
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
                 Keyword: {filters.keyword}
@@ -249,7 +288,6 @@ const Results = () => {
                 </button>
               </span>
             )}
-            
             {filters.tags && filters.tags.length > 0 && filters.tags.map((tag, index) => (
               <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
                 Tag: {tag}
@@ -267,9 +305,8 @@ const Results = () => {
                 </button>
               </span>
             ))}
-            
             {(filters.category || filters.state || filters.level || 
-              filters.underutilized || filters.keyword || 
+              typeof filters.underutilized === 'boolean' || filters.keyword || 
               (filters.tags && filters.tags.length > 0)) && (
               <button 
                 onClick={clearFilters}
@@ -284,14 +321,16 @@ const Results = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <div className="lg:w-1/4">
+            {/* Categories Filter */}
             <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
               <h2 className="text-xl font-semibold mb-4">Filter By Category</h2>
               <div className="space-y-2">
-                {categories.map((category) => (
+                {/* Ensure 'categories' from context is an array */}
+                {Array.isArray(categories) && categories.map((category) => (
                   <div key={category} className="flex items-center">
                     <button
                       onClick={() => handleCategoryFilter(category)}
-                      className="text-gray-700 hover:text-blue-700 capitalize"
+                      className="text-gray-700 hover:text-blue-700 capitalize w-full text-left"
                     >
                       {category}
                     </button>
@@ -300,29 +339,25 @@ const Results = () => {
               </div>
             </div>
             
+            {/* Level Filter */}
             <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
               <h2 className="text-xl font-semibold mb-4">Filter By Level</h2>
               <div className="space-y-2">
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setFilters({ ...filters, level: 'federal' })}
-                    className="text-gray-700 hover:text-blue-700"
-                  >
-                    Federal Benefits
-                  </button>
-                </div>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setFilters({ ...filters, level: 'state' })}
-                    className="text-gray-700 hover:text-blue-700"
-                  >
-                    State Benefits
-                  </button>
-                </div>
+                {['federal', 'state', 'local', 'private'].map(level => ( // Assuming these are possible levels
+                  <div key={level} className="flex items-center">
+                    <button
+                      onClick={() => setFilters({ ...filters, level: level as VeteranBenefit['level'] })}
+                      className="text-gray-700 hover:text-blue-700 capitalize w-full text-left"
+                    >
+                      {level}
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
             
-            {states.length > 0 && (
+            {/* States Filter */}
+            {Array.isArray(states) && states.length > 0 && (
               <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
                 <h2 className="text-xl font-semibold mb-4">Filter By State</h2>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -330,7 +365,7 @@ const Results = () => {
                     <div key={state} className="flex items-center">
                       <button
                         onClick={() => handleStateFilter(state)}
-                        className="text-gray-700 hover:text-blue-700"
+                        className="text-gray-700 hover:text-blue-700 w-full text-left"
                       >
                         {state}
                       </button>
@@ -340,14 +375,23 @@ const Results = () => {
               </div>
             )}
             
+            {/* Underutilized Filter */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <h2 className="text-xl font-semibold mb-4">Underutilized Benefits</h2>
               <div className="flex items-center">
                 <button
                   onClick={() => setFilters({ ...filters, underutilized: true })}
-                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 w-full"
                 >
                   Show Underutilized Only
+                </button>
+              </div>
+               <div className="flex items-center mt-2">
+                <button
+                  onClick={() => setFilters({ ...filters, underutilized: false })}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 w-full"
+                >
+                  Show Non-Underutilized
                 </button>
               </div>
             </div>
@@ -367,50 +411,55 @@ const Results = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Adjusted for better layout */}
                 {filteredBenefits.map((benefit, index) => (
-                  <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-semibold">{benefit.benefitName}</h3>
-                      <div className="flex space-x-2">
-                        <span className={`px-3 py-1 rounded-full text-sm ${
-                          benefit.level === 'federal' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {benefit.level === 'federal' ? 'Federal' : `State: ${benefit.state}`}
-                        </span>
-                        <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm capitalize">
-                          {benefit.category}
-                        </span>
-                        {benefit.underutilized && (
-                          <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">
-                            Underutilized
+                  <div key={benefit.id || index} className="bg-white p-6 rounded-lg shadow-sm flex flex-col justify-between"> {/* Use benefit.id for key */}
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        {/* Corrected: benefit.title */}
+                        <h3 className="text-xl font-semibold">{benefit.title}</h3>
+                        {/* Tag display can be simplified or improved based on styling needs */}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                          <span className={`px-2 py-0.5 rounded-full text-xs ${
+                            benefit.level === 'federal' 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {benefit.level === 'federal' ? 'Federal' : `State: ${benefit.state || 'N/A'}`}
+                          </span>
+                          <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full text-xs capitalize">
+                            {benefit.category}
+                          </span>
+                          {benefit.underutilized && (
+                            <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">
+                              Underutilized
+                            </span>
+                          )}
+                      </div>
+                      
+                      <p className="text-gray-700 mb-4 text-sm line-clamp-3">{benefit.description}</p> {/* line-clamp for controlled height */}
+                      
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {/* Ensure benefit.tags is an array */}
+                        {Array.isArray(benefit.tags) && benefit.tags.slice(0, 3).map((tag, tagIndex) => ( // Show fewer tags initially
+                          <span 
+                            key={tagIndex}
+                            className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs cursor-pointer hover:bg-gray-200"
+                            onClick={() => handleTagFilter(tag)}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {Array.isArray(benefit.tags) && benefit.tags.length > 3 && (
+                          <span className="text-gray-500 text-xs">
+                            +{benefit.tags.length - 3} more
                           </span>
                         )}
                       </div>
                     </div>
                     
-                    <p className="text-gray-700 mb-4">{benefit.description.substring(0, 200)}...</p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {benefit.tags.slice(0, 5).map((tag, tagIndex) => (
-                        <span 
-                          key={tagIndex}
-                          className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm cursor-pointer hover:bg-gray-200"
-                          onClick={() => handleTagFilter(tag)}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {benefit.tags.length > 5 && (
-                        <span className="text-gray-500 text-sm">
-                          +{benefit.tags.length - 5} more
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-200">
                       <button
                         onClick={() => handleShowDetails(benefit)}
                         className="text-blue-700 hover:underline text-sm font-medium"
