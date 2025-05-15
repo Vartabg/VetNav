@@ -1,3 +1,11 @@
+/* src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Plus+Jakarta+Sans:wght@400;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif; /* Sets Inter as the default for the whole app */
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -18,4 +26,25 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+/* Custom scrollbar for horizontal scrolling chips */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px; /* Or a different height */
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Tailwind gray-300 */
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* Tailwind gray-400 */
+}
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f1f1;
 }
