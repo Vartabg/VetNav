@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# Fix TypeScript errors in the PDF generator
+cat > src/utils/pdf/generatePdf.ts << 'FIXEDPDF'
 // src/utils/pdf/generatePdf.ts
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -99,7 +103,7 @@ export const generateBenefitsPdf = (filters: BenefitFilters = {}, fileName = 've
   });
   
   // Add footer
-  const pageCount = (doc.internal as any).getNumberOfPages();
+  const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(10);
@@ -203,3 +207,6 @@ export default {
   generateBenefitsPdf,
   generateSingleBenefitPdf
 };
+FIXEDPDF
+
+echo "PDF utility TypeScript errors fixed."

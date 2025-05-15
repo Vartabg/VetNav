@@ -1,3 +1,12 @@
+#!/bin/bash
+
+# Check the current content of the JSON file
+echo "Checking current content of benefitsMasterList.json..."
+head -n 5 src/data/benefitsMasterList.json
+
+# Create a proper JSON file from the original data
+echo "Creating a proper JSON file..."
+cat > src/data/benefitsMasterList.json << 'JSONDATA'
 [
   {
     "benefitName": "Post-9/11 GI Bill (Chapter 33)",
@@ -39,3 +48,6 @@
     "underutilizedReason": "Only about half of eligible veterans are enrolled in VA health care. Many are unaware of their eligibility, prefer private insurance, or had past negative experiences."
   }
 ]
+JSONDATA
+
+echo "JSON file fixed with proper format."

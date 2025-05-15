@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Backup the original file
+cp src/data/services/benefitsService.js src/data/services/benefitsService.js.bak
+
+# Create an improved version of the benefits service
+cat > src/data/services/benefitsService.js << 'NEWSERVICE'
 // src/data/services/benefitsService.js
 
 import benefits from '../benefitsMasterList.json';
@@ -117,3 +124,6 @@ export default {
   getStateBenefits,
   getUnderutilizedBenefits
 };
+NEWSERVICE
+
+echo "Benefits service updated with improved filtering and search capabilities!"

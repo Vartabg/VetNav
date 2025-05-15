@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# Create the Onboarding component
+cat > src/components/screens/Onboarding/Onboarding.tsx << 'ONBOARDING'
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBenefits } from '../../../context/BenefitsContext';
@@ -293,3 +297,11 @@ export const Onboarding = () => {
 };
 
 export default Onboarding;
+ONBOARDING
+
+# Update the index.ts file
+cat > src/components/screens/Onboarding/index.ts << 'ONBOARDINDEX'
+export { default } from './Onboarding';
+ONBOARDINDEX
+
+echo "Onboarding component implemented with veteran profile form and context integration!"

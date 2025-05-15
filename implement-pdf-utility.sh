@@ -1,32 +1,21 @@
+#!/bin/bash
+
+# Create an improved PDF generation utility
+cat > src/utils/pdf/generatePdf.ts << 'PDFUTIL'
 // src/utils/pdf/generatePdf.ts
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { filterBenefits } from '../../data/services/benefitsService';
-import { BenefitFilters, VeteranBenefit } from '../../data/types';
 
 // Declare the autotable plugin to work with TypeScript
 declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
-    internal: {
-      scaleFactor: number;
-      pageSize: {
-        width: number;
-        getWidth: () => number;
-        height: number;
-        getHeight: () => number;
-      };
-      pages: number[];
-      getNumberOfPages: () => number;
-      getEncryptor: (objectId: number) => (data: string) => string;
-      events: any;
-    };
-    setPage: (pageNumber: number) => jsPDF;
   }
 }
 
 // Function to generate a PDF of benefits based on filters
-export const generateBenefitsPdf = (filters: BenefitFilters = {}, fileName = 'veteran-benefits.pdf') => {
+export const generateBenefitsPdf = (filters = {}, fileName = 'veteran-benefits.pdf') => {
   // Get filtered benefits
   const benefits = filterBenefits(filters);
   
@@ -99,7 +88,7 @@ export const generateBenefitsPdf = (filters: BenefitFilters = {}, fileName = 've
   });
   
   // Add footer
-  const pageCount = (doc.internal as any).getNumberOfPages();
+  const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(10);
@@ -113,7 +102,7 @@ export const generateBenefitsPdf = (filters: BenefitFilters = {}, fileName = 've
 };
 
 // Function to generate a detailed PDF for a single benefit
-export const generateSingleBenefitPdf = (benefit: VeteranBenefit, fileName = 'benefit-details.pdf') => {
+export const generateSingleBenefitPdf = (benefit, fileName = 'benefit-details.pdf') => {
   // Create a new PDF document
   const doc = new jsPDF();
   
@@ -203,3 +192,11 @@ export default {
   generateBenefitsPdf,
   generateSingleBenefitPdf
 };
+PDFUTIL
+
+# Update the index file
+cat > src/utils/pdf/index.ts << 'PDFINDEX'
+export * from './generatePdf';
+PDFINDEX
+
+echo "PDF utility implemented with support for both filtered benefits reports and detailed single benefit reports!"

@@ -1,10 +1,14 @@
-// src/data/services/benefitsService.js
+// src/data/services/benefitsService.ts
 
 import benefits from '../benefitsMasterList.json';
+import { VeteranBenefit, BenefitFilters } from '../types';
+
+// Assert the type of benefits
+const typedBenefits = benefits as VeteranBenefit[];
 
 // Filter benefits based on various criteria
-export const filterBenefits = (filters = {}) => {
-  let filteredBenefits = [...benefits];
+export const filterBenefits = (filters: BenefitFilters = {}): VeteranBenefit[] => {
+  let filteredBenefits = [...typedBenefits];
 
   // Filter by category if specified
   if (filters.category && filters.category !== 'all') {
@@ -38,7 +42,7 @@ export const filterBenefits = (filters = {}) => {
   // Filter by tags if specified
   if (filters.tags && filters.tags.length > 0) {
     filteredBenefits = filteredBenefits.filter(benefit => 
-      filters.tags.some(tag => benefit.tags.includes(tag))
+      filters.tags!.some(tag => benefit.tags.includes(tag))
     );
   }
 
@@ -55,55 +59,55 @@ export const filterBenefits = (filters = {}) => {
 };
 
 // Get a single benefit by name
-export const getBenefitByName = (name) => {
-  return benefits.find(benefit => 
+export const getBenefitByName = (name: string): VeteranBenefit | undefined => {
+  return typedBenefits.find(benefit => 
     benefit.benefitName.toLowerCase() === name.toLowerCase()
   );
 };
 
 // Get all benefits
-export const getAllBenefits = () => {
-  return benefits;
+export const getAllBenefits = (): VeteranBenefit[] => {
+  return typedBenefits;
 };
 
 // Get all available categories
-export const getAllCategories = () => {
-  const categories = new Set(benefits.map(benefit => benefit.category));
+export const getAllCategories = (): string[] => {
+  const categories = new Set(typedBenefits.map(benefit => benefit.category));
   return Array.from(categories).sort();
 };
 
 // Get all available states
-export const getAllStates = () => {
+export const getAllStates = (): string[] => {
   const states = new Set(
-    benefits
+    typedBenefits
       .filter(benefit => benefit.state !== null)
-      .map(benefit => benefit.state)
+      .map(benefit => benefit.state as string)
   );
   return Array.from(states).sort();
 };
 
 // Get all available tags
-export const getAllTags = () => {
-  const tagsSet = new Set();
-  benefits.forEach(benefit => {
+export const getAllTags = (): string[] => {
+  const tagsSet = new Set<string>();
+  typedBenefits.forEach(benefit => {
     benefit.tags.forEach(tag => tagsSet.add(tag));
   });
   return Array.from(tagsSet).sort();
 };
 
 // Get federal benefits
-export const getFederalBenefits = () => {
-  return benefits.filter(benefit => benefit.level === 'federal');
+export const getFederalBenefits = (): VeteranBenefit[] => {
+  return typedBenefits.filter(benefit => benefit.level === 'federal');
 };
 
 // Get state benefits
-export const getStateBenefits = () => {
-  return benefits.filter(benefit => benefit.level === 'state');
+export const getStateBenefits = (): VeteranBenefit[] => {
+  return typedBenefits.filter(benefit => benefit.level === 'state');
 };
 
 // Get underutilized benefits
-export const getUnderutilizedBenefits = () => {
-  return benefits.filter(benefit => benefit.underutilized === true);
+export const getUnderutilizedBenefits = (): VeteranBenefit[] => {
+  return typedBenefits.filter(benefit => benefit.underutilized === true);
 };
 
 export default {

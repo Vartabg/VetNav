@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# Create the Results component
+cat > src/components/screens/Results/Results.tsx << 'RESULTSCOMP'
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBenefits } from '../../../context/BenefitsContext';
@@ -445,3 +449,6 @@ const Results = () => {
 };
 
 export default Results;
+RESULTSCOMP
+
+echo "Results component implemented with filtering, detail view, and PDF generation!"

@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# Fix the Home component
+cat > src/components/screens/Home/Home.tsx << 'FIXEDHOME'
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useBenefits } from '../../../context/BenefitsContext';
@@ -219,3 +223,6 @@ export const Home = () => {
 };
 
 export default Home;
+FIXEDHOME
+
+echo "Home component fixed - removed references to unused props and fixed anchor links."

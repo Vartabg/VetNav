@@ -1,16 +1,21 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './components/screens/Home';
-import { Onboarding } from './components/screens/Onboarding';
+import Onboarding from './components/screens/Onboarding'
+import Results from './components/screens/Results/Results';
+import { BenefitsProvider } from './context/BenefitsContext';
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-      </Routes>
-    </BrowserRouter>
+    <BenefitsProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/results" element={<Results />} />
+        </Routes>
+      </BrowserRouter>
+    </BenefitsProvider>
   );
 };
 

@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Backup the original Home component
+cp src/components/screens/Home/Home.tsx src/components/screens/Home/Home.tsx.bak
+
+# Create an improved Home component
+cat > src/components/screens/Home/Home.tsx << 'HOMECOMP'
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useBenefits } from '../../../context/BenefitsContext';
@@ -6,7 +13,9 @@ export const Home = () => {
   const { 
     allBenefits, 
     categories, 
-    setFilters
+    states, 
+    setFilters, 
+    underutilizedBenefits 
   } = useBenefits();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,9 +55,9 @@ export const Home = () => {
               <Link to="/onboarding" className="text-white hover:text-blue-200">
                 Personalize
               </Link>
-              <Link to="/results" className="text-white hover:text-blue-200">
+              <a href="#" className="text-white hover:text-blue-200">
                 About
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -204,9 +213,9 @@ export const Home = () => {
               <p className="text-blue-200 mt-1">Veteran Benefits Finder</p>
             </div>
             <div className="flex space-x-6">
-              <Link to="/results" className="text-blue-200 hover:text-white">About</Link>
-              <Link to="/results" className="text-blue-200 hover:text-white">Privacy</Link>
-              <Link to="/results" className="text-blue-200 hover:text-white">Contact</Link>
+              <a href="#" className="text-blue-200 hover:text-white">About</a>
+              <a href="#" className="text-blue-200 hover:text-white">Privacy</a>
+              <a href="#" className="text-blue-200 hover:text-white">Contact</a>
             </div>
           </div>
           <div className="border-t border-blue-800 mt-6 pt-6 text-center text-blue-300 text-sm">
@@ -219,3 +228,6 @@ export const Home = () => {
 };
 
 export default Home;
+HOMECOMP
+
+echo "Home component improved with context integration, search functionality, and better UI!"
